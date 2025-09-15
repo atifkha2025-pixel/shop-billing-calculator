@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Shop Billing Calculator</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f5f6fa; display:flex; justify-content:center; align-items:flex-start; padding:20px; }
+.card { background:white; border-radius:16px; padding:20px; width:520px; box-shadow:0 8px 20px rgba(0,0,0,0.1); }
+h2 { text-align:center; color:#2f3640; }
+input[type=number], input[type=text] { padding:8px; width:100px; margin:5px; border-radius:6px; border:1px solid #dcdde1; }
+button { padding:6px 12px; border:none; border-radius:6px; margin:2px 2px; cursor:pointer; font-weight:bold; color:white; transition:0.2s; }
+.add-btn { background:#44bd32; } .discount-btn { background:#9c88ff; } .print-btn { background:#e1b12c; }
+.edit-btn { background:#00a8ff; font-size:12px; padding:4px 8px; } .delete-btn { background:#e84118; font-size:12px; padding:4px 8px; }
+button:hover { opacity:0.9; }
+table { width:100%; border-collapse:collapse; margin-top:10px; }
+th, td { border:1px solid #dcdde1; padding:6px; text-align:center; border-radius:4px; }
+tfoot tr td { font-weight:bold; }
+tfoot tr td.right { text-align:right; }
+label { font-weight:bold; }
+@media print {
+  button,input{display:none;}
+  th,td{font-size:12pt;}
+}
+</style>
+</head>
+<body>
+
+<div class="card" id="billCard">
+<h2>🛒 AI Shop Billing Calculator</h2>
+
+<div id="dateTimeDisplay"></div>
+<div id="invoiceDisplay"></div>
+
+<div>
+Price: <input type="number" id="itemPrice" placeholder="Price">
+Qty: <input type="number" id="itemQty" placeholder="Qty">
+<button class="add-btn" onclick="addItem()">Add Item</button>
+</div>
+
+<table id="shopTable">
+<thead>
+<tr>
+<th>#</th><th>Price</th><th>Qty</th><th>Total</th><th>Edit</th><th>Delete</th>
+</tr>
+</thead>
+<tbody></tbody>
+<tfoot id="totalRow"></tfoot>
+</table>
+
+<div style="margin-top:10px;">
+Discount (%): <input type="number" id="discount" placeholder="0">
+Tax (%): <input type="number" id="tax" placeholder="0">
+<button class="discount-btn" onclick="applyDiscount()">Apply</button>
+<button class="print-btn" onclick="printBill()">Print / Save</button>
+</div>
+
+<hr>
+
+<div>
+<label>Customer Name:</label>
+<input type="text" id="custName" placeholder="Optional"><br>
+<label>Address:</label>
+<input type="text" id="custAddress" placeholder="Optional"><br>
+<label>Mobile No.:</label>
+<input type="text" id="custMobile" placeholder="Optional">
+</div>
+
+</div>
+
+<script>
+let shopItems = [];
+let discountPercent = 0;
+let taxPercent = 0;
+let invoiceNumber = 1001; // Auto Invoice Number start
+
+function updateDateTime() {
+  const now = new Date();
+  document.getElementById('dateTimeDisplay').innerText = 'Date & Time: ' + now.toLocaleString();
+}
+updateDateTime();
+setInterval(updateDateTime, 1000);
+
+function updateInvoiceNumber() {
+  document.getElementById('invoiceDisplay').innerText = 'Invoice #: ' + invoiceNumber;
+}
+updateInvoiceNumber();
+
+function updateTable(){
+  const tbody = document.querySelector("#shopTable tbody");
+  tbody.innerHTML = "";
+  let totalQty = 0;
+  shopItems.forEach((item,index)=>{
+    const total = item.price*item.qty;
+    totalQty += item.qty;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${index+1}</td>
+                    <td>₹${item.price.toFixed(2)}</td>
+                    <td>${item.qty}</td>
+                    <td>₹${total.toFixed(2)}</td>
+                    <td><button class="edit-btn" onclick="editItem(${index})">Edit</button></td>
+                    <td><button class="delete-btn" onclick="deleteItem(${index})">Del</button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  const tfoot = document.getElementById("totalRow");
+  let subtotal = shopItems.reduce((sum,item)=>sum+item.price*item.qty,0);
+  let discountAmount = subtotal*discountPercent/100;
+  let taxedSubtotal = subtotal - discountAmount;
+  let taxAmount = taxedSubtotal*taxPercent/100;
+  let grandTotal = taxedSubtotal + taxAmount;
+
+  let footerHTML = `<tr><td colspan="2">Total Quantity</td><td colspan="4">${totalQty}</td></tr>`;
+  if(discountPercent>0){
+    footerHTML += `<tr><td colspan="2" class="right">Subtotal</td><td colspan="4" class="right">₹${subtotal.toFixed(2)}</td></tr>`;
+    footerHTML += `<tr><td colspan="2" class="right">Discount</td><td colspan="4" class="right">₹${discountAmount.toFixed(2)}</td></tr>`;
+  }
+  if(taxPercent>0){
+    footerHTML += `<tr><td colspan="2" class="right">Tax</td><td colspan="4" class="right">₹${taxAmount.toFixed(2)}</td></tr>`;
+  }
+  footerHTML += `<tr><td colspan="2" class="right">Grand Total</td><td colspan="4" class="right">₹${grandTotal.toFixed(2)}</td></tr>`;
+
+  tfoot.innerHTML = footerHTML;
+}
+
+function addItem(){
+  const price = parseFloat(document.getElementById('itemPrice').value);
+  const qty = parseFloat(document.getElementById('itemQty').value);
+  if(isNaN(price)||price<=0||isNaN(qty)||qty<=0){ alert("Enter valid Price & Qty"); return; }
+  shopItems.push({price, qty});
+  document.getElementById('itemPrice').value='';
+  document.getElementById('itemQty').value='';
+  updateTable();
+}
+
+function editItem(index){
+  const newPrice = parseFloat(prompt("Enter new price:", shopItems[index].price));
+  const newQty = parseFloat(prompt("Enter new quantity:", shopItems[index].qty));
+  if(isNaN(newPrice)||newPrice<=0||isNaN(newQty)||newQty<=0){ alert("Invalid values"); return; }
+  shopItems[index].price=newPrice; shopItems[index].qty=newQty;
+  updateTable();
+}
+
+function deleteItem(index){
+  if(confirm("Are you sure to delete this item?")){
+    shopItems.splice(index,1);
+    updateTable();
+  }
+}
+
+function applyDiscount(){
+  const disc = parseFloat(document.getElementById('discount').value);
+  const tax = parseFloat(document.getElementById('tax').value);
+  discountPercent = (isNaN(disc) || disc<0)?0:disc;
+  taxPercent = (isNaN(tax) || tax<0)?0:tax;
+  updateTable();
+}
+
+function printBill(){
+  const newWin = window.open('', '', 'width=600,height=700');
+  newWin.document.write('<html><head><title>Print Bill</title><style>table{width:100%;border-collapse:collapse;}th,td{border:1px solid #000;padding:6px;text-align:center;}tfoot tr td{font-weight:bold;} tfoot tr td.right{text-align:right;} h2{text-align:center;} p{margin:2px 0;}</style></head><body>');
+
+  const now = new Date();
+  newWin.document.write('<h2>🛒 AI Shop Bill</h2>');
+  newWin.document.write('<p>Date & Time: ' + now.toLocaleString() + '</p>');
+  newWin.document.write('<p>Invoice #: ' + invoiceNumber + '</p>');
+  invoiceNumber++; // increment for next bill
+
+  // Optional Name
+  const name = document.getElementById('custName').value.trim();
+  if(name) newWin.document.write('<p>Customer Name: ' + name + '</p>');
+
+  // Optional Address + Mobile same row
+  const address = document.getElementById('custAddress').value.trim();
+  const mobile = document.getElementById('custMobile').value.trim();
+  if(address || mobile){
+    let line = '';
+    if(address) line += 'Address: ' + address;
+    if(address && mobile) line += '        '; // space between
+    if(mobile) line += 'Mobile No.: ' + mobile;
+    newWin.document.write('<p>' + line + '</p>');
+  }
+
+  // Items Table
+  let tableHTML='<table><thead><tr><th>#</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead><tbody>';
+  let totalQty = 0;
+  shopItems.forEach((item,index)=>{
+    tableHTML += `<tr><td>${index+1}</td><td>₹${item.price.toFixed(2)}</td><td>${item.qty}</td><td>₹${(item.price*item.qty).toFixed(2)}</td></tr>`;
+    totalQty += item.qty;
+  });
+  tableHTML += '</tbody><tfoot>';
+
+  let subtotal = shopItems.reduce((sum,item)=>sum+item.price*item.qty,0);
+  let discountAmount = subtotal*discountPercent/100;
+  let taxedSubtotal = subtotal - discountAmount;
+  let taxAmount = taxedSubtotal*taxPercent/100;
+  let grandTotal = taxedSubtotal + taxAmount;
+
+  tableHTML += `<tr><td colspan="2">Total Quantity</td><td colspan="2">${totalQty}</td></tr>`;
+  if(discountPercent>0){
+    tableHTML += `<tr><td colspan="2" class="right">Subtotal</td><td colspan="2" class="right">₹${subtotal.toFixed(2)}</td></tr>`;
+    tableHTML += `<tr><td colspan="2" class="right">Discount</td><td colspan="2" class="right">₹${discountAmount.toFixed(2)}</td></tr>`;
+  }
+  if(taxPercent>0){
+    tableHTML += `<tr><td colspan="2" class="right">Tax</td><td colspan="2" class="right">₹${taxAmount.toFixed(2)}</td></tr>`;
+  }
+  tableHTML += `<tr><td colspan="2" class="right">Grand Total</td><td colspan="2" class="right">₹${grandTotal.toFixed(2)}</td></tr>`;
+  tableHTML += '</tfoot></table>';
+
+  newWin.document.write(tableHTML);
+  newWin.document.write('</body></html>');
+  newWin.document.close();
+  newWin.focus();
+  newWin.print();
+}
+</script>
+
+</body>
+</html>
