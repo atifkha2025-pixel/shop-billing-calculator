@@ -3,10 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Shop Billing Calculator</title>
-  <meta name="description" content="Free online shop billing calculator with discount, tax, total quantity, and print-ready layout. Add items, calculate grand total, and print professional bills easily.">
+<title>AI Shop Billing Calculator | Free Online Billing Tool</title>
+
+<!-- SEO Meta -->
+<meta name="description" content="AI Shop Billing Calculator - Free online billing tool for shopkeepers. Add items, apply discount & tax, auto total, and print/save professional bills.">
+<meta name="keywords" content="shop billing calculator, billing software online, invoice calculator, free billing tool, tax discount calculator">
+<meta name="author" content="Atif Kha">
+
+<!-- Google Verification -->
 <meta name="google-site-verification" content="BtnONFCl4kZm2Oss9x-RD4K98B8hB4uLosw0NRtnqrQ" />
-  <style>
+
+<!-- Schema.org JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AI Shop Billing Calculator",
+  "url": "https://atifkha2025-pixel.github.io/shop-billing-calculator/",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "All",
+  "description": "Free AI-powered shop billing calculator with discount and tax support. Easy to use, mobile-friendly and print-ready.",
+  "author": {
+    "@type": "Person",
+    "name": "Atif Kha"
+  }
+}
+</script>
+
+<!-- CSS -->
+<style>
 body { font-family: Arial, sans-serif; background:#f5f6fa; display:flex; justify-content:center; align-items:flex-start; padding:20px; }
 .card { background:white; border-radius:16px; padding:20px; width:520px; box-shadow:0 8px 20px rgba(0,0,0,0.1); }
 h2 { text-align:center; color:#2f3640; }
@@ -68,13 +93,25 @@ Tax (%): <input type="number" id="tax" placeholder="0">
 <input type="text" id="custMobile" placeholder="Optional">
 </div>
 
+<!-- SEO Content Section -->
+<section style="margin-top:20px; background:#fff; padding:15px; border-radius:10px;">
+  <h2>About AI Shop Billing Calculator</h2>
+  <p>This free billing calculator helps shopkeepers and small businesses generate bills easily. You can add unlimited items, apply discount and tax, and print professional bills instantly.</p>
+  <ul>
+    <li>✅ Auto calculation of total, discount, and tax</li>
+    <li>✅ Print and save bills instantly</li>
+    <li>✅ Works on mobile and desktop</li>
+    <li>✅ 100% free online tool</li>
+  </ul>
+</section>
+
 </div>
 
 <script>
 let shopItems = [];
 let discountPercent = 0;
 let taxPercent = 0;
-let invoiceNumber = 1001; // Auto Invoice Number start
+let invoiceNumber = 1001;
 
 function updateDateTime() {
   const now = new Date();
@@ -166,24 +203,21 @@ function printBill(){
   newWin.document.write('<h2>🛒 AI Shop Bill</h2>');
   newWin.document.write('<p>Date & Time: ' + now.toLocaleString() + '</p>');
   newWin.document.write('<p>Invoice #: ' + invoiceNumber + '</p>');
-  invoiceNumber++; // increment for next bill
+  invoiceNumber++;
 
-  // Optional Name
   const name = document.getElementById('custName').value.trim();
   if(name) newWin.document.write('<p>Customer Name: ' + name + '</p>');
 
-  // Optional Address + Mobile same row
   const address = document.getElementById('custAddress').value.trim();
   const mobile = document.getElementById('custMobile').value.trim();
   if(address || mobile){
     let line = '';
     if(address) line += 'Address: ' + address;
-    if(address && mobile) line += '        '; // space between
+    if(address && mobile) line += '        ';
     if(mobile) line += 'Mobile No.: ' + mobile;
     newWin.document.write('<p>' + line + '</p>');
   }
 
-  // Items Table
   let tableHTML='<table><thead><tr><th>#</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead><tbody>';
   let totalQty = 0;
   shopItems.forEach((item,index)=>{
@@ -219,5 +253,3 @@ function printBill(){
 
 </body>
 </html>
-
-
